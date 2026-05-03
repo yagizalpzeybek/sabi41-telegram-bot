@@ -9,7 +9,7 @@ from telegram.ext import (
 )
 
 from config import TOKEN
-from commands import start_command, help_command, about_command, custom_command, time_command, menu_command, game_command, wiki_command
+from commands import start_command, help_command, about_command, custom_command, time_command, menu_command, game_command, wiki_command, weather_command
 from handlers import handle_message, button_handler, error
 
 
@@ -35,6 +35,7 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(CommandHandler("game", game_command))
     app.add_handler(CommandHandler("wiki", wiki_command))
+    app.add_handler(CommandHandler("weather", weather_command))
 
     # ❗ önemli
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

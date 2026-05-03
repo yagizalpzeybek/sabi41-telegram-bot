@@ -1,9 +1,10 @@
 import datetime
 import wikipedia
+import requests
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-
+from config import WEATHER_API_KEY
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -107,3 +108,49 @@ async def game_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Choose your move:",
         reply_markup=reply_markup
     )
+
+async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "Please provide a city name.\nExample: /weather London"
+
+        )
+        return
+    
+    city = " ".join(context.args)
+
+    url = "https://api.openweathermap.org/data/2.5/weather"
+
+    params = {
+        "q": city,
+        "appid": WEATHER_API_KEY,
+        "units": "metric",
+        "lang": "en",
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
+
+        if response.status_code != 200:
+            await update.message.reply_text("City not found or weather service error.")
+            return
+
+        city_name = data["name"]
+        country = data["sys"]["country"]
+        temp = data["main"]["temp"]
+        feels_like = data["main"]["feels_like"]
+        humidity = data["main"]["humidity"]
+        description = data["weather"][0]["description"].title()
+
+        await update.message.reply_text(
+            f"🌦️ Weather in {city_name}, {country}\n\n"
+            f"Condition: {description}\n"
+            f"Temperature: {temp}°C\n"
+            f"Feels like: {feels_like}°C\n"
+            f"Humidity: {humidity}%"
+        )
+
+    except Exception as e:
+        print(f"Weather error: {e}")
+        await update.message.reply_text("Something went wrong while fetching weather data.")
