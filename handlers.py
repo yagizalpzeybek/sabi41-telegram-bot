@@ -45,7 +45,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "help":
         await query.edit_message_text(
-            "Commands:\n/start - Start\n/help - Help\n/about - About\n/time - Time\n/menu - Menu",
+            "Commands:\n/start - Start\n/help - Help\n/about - About\n/time - Time\n/menu - Menu\n/game - Rock Paper Scissors\n/wiki - Wikipedia Search\n/weather - Weather Search",
             reply_markup=back_markup
         )
 
@@ -73,6 +73,16 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=back_markup
         )
 
+    elif query.data == "weather_info":
+        await query.edit_message_text(
+            "🌦️ Weather Search\n\n"
+            "Use this command:\n"
+            "/weather city_name\n\n"
+            "Example:\n"
+            "/weather London",
+            reply_markup=back_markup
+        )
+
     elif query.data == "menu":
         keyboard = [
             [
@@ -82,6 +92,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [
                 InlineKeyboardButton("⏰ Time", callback_data="time"),
                 InlineKeyboardButton("🎮 Game", callback_data="game"),
+            ],
+            [
+                InlineKeyboardButton("🌐 Wiki", callback_data="wiki_info"),
+                InlineKeyboardButton("🌦️ Weather", callback_data="weather_info"),
+            
             ],
         ]
 

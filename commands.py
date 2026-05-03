@@ -83,6 +83,7 @@ async def menu_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ],
         [
             InlineKeyboardButton("🌐 Wiki", callback_data="wiki_info"),
+            InlineKeyboardButton("🌦️ Weather", callback_data="weather_info"),
         ],
     ]
 
