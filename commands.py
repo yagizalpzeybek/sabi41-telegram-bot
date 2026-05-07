@@ -4,10 +4,13 @@ import requests
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from config import WEATHER_API_KEY, OPENAI_API_KEY
-from openai import AsyncOpenAI
+from config import WEATHER_API_KEY, GROQ_API_KEY
+from groq import Groq
 
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+
+groq_client = Groq(api_key=GROQ_API_KEY)
+
+
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -159,34 +162,37 @@ async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Weather error: {e}")
         await update.message.reply_text("Something went wrong while fetching weather data.")
 
-
 async def ask_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
-            "Please ask a question \nExample: /ask What is telegram?"
+            "Please ask a question.\nExample: /ask What is Telegram??"
         )
         return
-        
+
     user_question = " ".join(context.args)
 
-    try: 
+    try:
         await update.message.reply_text("Thinking...")
 
-        response = await openai_client.responses.create(
-            model = "gpt-4.1-mini",
-            input=user_question,
-            instructions=(
-                "You are Sabi41, a helpful and friendly Telegram assistant. "
-                "Keep answers concise, clear and beginner-friendly."
-            ),
-            max_output_tokens=300,
+        completion = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are Sabi41, a helpful Telegram assistant. Keep answers short and clear."
+                },
+                {
+                    "role": "user",
+                    "content": user_question
+                }
+            ],
+            temperature=0.7,
+            max_tokens=300,
         )
 
-        await update.message.reply_text(response.output_text)
-    
+        answer = completion.choices[0].message.content
+        await update.message.reply_text(answer.strip())
+
     except Exception as e:
-        print(f"OpenAI error: {e}")
-        await update.message.reply_text(
-            "Something went wrong  while generating an answer."
-    )
-    
+        print(f"Groq error: {e}")
+        await update.message.reply_text("AI service is currently unavailable.")

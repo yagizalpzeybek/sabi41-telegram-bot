@@ -37,7 +37,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("wiki", wiki_command))
     app.add_handler(CommandHandler("weather", weather_command))
     app.add_handler(CommandHandler("ask", ask_command))
-
     # ❗ önemli
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
