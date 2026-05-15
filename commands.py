@@ -277,3 +277,12 @@ async def reset_budget_command(update: Update, context: ContextTypes.DEFAULT_TYP
     await update.message.reply_text(
         "Budget reset. Set a new budget with: /setbudget"
     )
+
+async def balance_tracker_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "💰 Balance Tracker Commands\n\n"
+        "/setbudget - Set your budget\n"
+        "/spend - Record an expense\n"
+        "/balance - Show remaining balance\n"
+        "/resetbudget - Reset your budget"
+    )
