@@ -219,7 +219,7 @@ async def set_budget_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_id = update.message.from_user.id
     budget = set_budget(user_id, amount)
 
-    await update.message.REPLY_TEXT(
+    await update.message.reply_text(
         f"Budget set: {budget:,.2f} TL"
     )
         
