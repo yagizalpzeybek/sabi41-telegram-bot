@@ -6,6 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import WEATHER_API_KEY, GROQ_API_KEY
 from groq import Groq
+from budget import set_budget, get_balance, spend_money, reset_budget
 
 
 groq_client = Groq(api_key=GROQ_API_KEY)
@@ -196,3 +197,83 @@ async def ask_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Groq error: {e}")
         await update.message.reply_text("AI service is currently unavailable.")
+
+
+    async def set_budget_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not context.args:
+            await update.message.reply_text(
+                "Please enter a budget amount.\nExample: /setbudget 20000"
+            )
+            return
+        
+        try:
+            amount = float(context.args[0].replace(",","."))
+        except ValueError:
+            await update.message.reply_text("Please enter a valid number.")
+            return
+    
+        if amount <= 0:
+            await update.message.reply_text("Budget must be greater than 0")
+            return
+        
+        user_id = update.message.from_user.id
+        budget = set_budget(user_id, amount)
+
+        await update.message.REPLY_TEXT(
+            f"Budget set: {budget:,.2f} TL"
+        )
+        
+    async def spend_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not context.args:
+            await update.message.reply_text(
+                "Please enter an amount.\nExample: /spend 150"
+
+            )
+
+            return
+        
+        try: 
+            amount = float(context.args[0].replace(",","."))
+        except ValueError:
+            await update.message.reply_text("Please enter a valid number")
+            return
+        
+        if amount <= 0:
+            await update.message.reply_text("Amount must be greater than 0.")
+            return
+        
+        user_id = update.message.from_user.id
+        remaining_balance = spend_money(user_id, amount)
+
+        if remaining_balance is None:
+            await update.message.reply_text(
+                "You don't have a budget yet.\nSet one with: /setbudget"
+            )
+            return
+        
+        await update.message.reply_text(
+            f"Expense recorded: {amount:,.2f} TL\n"
+            f"Remaining balance: {remaining_balance:,.2f} TL"
+        )
+
+    async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user_id = update.message.from_user.id
+        balance = get_balance(user_id)
+
+        if balance is None:
+            await update.message.reply_text(
+                "You don't have a budget yet.\n Set one with: /setbudget"
+            )
+            return
+        
+        await update.message.reply_text(
+            f"Your remaining balance is {balance:,.2f} TL"
+        )
+
+    async def reset_budget_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user_id = update.message.from_user.id
+        reset_budget(user_id)
+
+        await update.message.reply_text(
+            "Budget reset. Set a new budget with: /setbudget"
+        )

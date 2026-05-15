@@ -3,3 +3,4 @@ memory.json
 .env
 __pycache__/
 *.pyc
+budget.json
