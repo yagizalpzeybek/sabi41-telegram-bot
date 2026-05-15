@@ -39,7 +39,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("ask", ask_command))
     # ❗ önemli
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_handler(CommandHandler("setbudget", set_budget_command))
+    app.add_handler(CommandHandler("budget", set_budget_command))
     app.add_handler(CommandHandler("spend", spend_command))
     app.add_handler(CommandHandler("balance", balance_command))
     app.add_handler(CommandHandler("resetbudget", reset_budget_command))
