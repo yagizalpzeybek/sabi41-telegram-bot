@@ -7,6 +7,7 @@ from telegram.ext import ContextTypes
 from config import WEATHER_API_KEY, GROQ_API_KEY
 from groq import Groq
 from budget import set_budget, get_balance, spend_money, reset_budget
+from calories import set_calories, get_calories, take_calories, reset_calories, reset_to_initial_calories
 
 
 groq_client = Groq(api_key=GROQ_API_KEY)
@@ -285,4 +286,108 @@ async def balance_tracker_command(update: Update, context: ContextTypes.DEFAULT_
         "/spend - Record an expense\n"
         "/balance - Show remaining balance\n"
         "/resetbudget - Reset your budget"
+    )
+
+async def set_calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "Please enter a calorie amount.\nExample: /setcalories 2500"
+        )
+        return
+        
+    try:
+        amount = float(context.args[0].replace(",","."))
+    except ValueError:
+        await update.message.reply_text("Please enter a valid number.")
+        return
+    
+    if amount <= 0:
+        await update.message.reply_text("Calorie amount must be greater than 0")
+        return
+        
+    user_id = update.message.from_user.id
+    calories = set_calories(user_id, amount)
+
+    await update.message.reply_text(
+        f"Budget set: {calories:,.2f} kcal"
+    )
+        
+async def take_calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "Please enter an amount.\nExample: /take 150"
+
+        )
+
+        return
+        
+    try: 
+        amount = float(context.args[0].replace(",","."))
+    except ValueError:
+        await update.message.reply_text("Please enter a valid number")
+        return
+        
+    if amount <= 0:
+        await update.message.reply_text("Amount must be greater than 0.")
+        return
+        
+    user_id = update.message.from_user.id
+    remaining_calories = take_calories(user_id, amount)
+
+    if remaining_calories is None:
+        await update.message.reply_text(
+            "You didn't enter a calorie amount yet.\nSet one with: /setcalories"
+        )
+        return
+        
+    await update.message.reply_text(
+        f"Calories recorded: {amount:,.2f} TL\n"
+        f"Remaining calories: {remaining_calories:,.2f} TL"
+    )
+
+async def calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    calories = get_calories(user_id)
+
+    if calories is None:
+        await update.message.reply_text(
+            "You didn't enter a calorie amount yet.\n Set one with: /setcalories"
+        )
+        return
+        
+    await update.message.reply_text(
+        f"Your remaining calories are {calories:,.2f} kcal"
+    )
+
+async def reset_calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    reset_calories(user_id)
+
+    await update.message.reply_text(
+        "Calories reset. Set a new calorie amount with: /setcalories"
+    )
+
+async def reset_calories_to_initial_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    calories = reset_to_initial_calories(user_id)
+
+    if calories is None:
+        await update.message.reply_text(
+            "You don't have a calorie amount yet.\n Set one with: /setcalories"
+        )
+        return
+    
+    await update.message.reply_text(
+        f"Calories reset to initial amount.\n"
+        f"Current calories: {calories['current_calories']:,.2f} kcal"
+    )
+
+async def calorie_tracker_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Calorie Tracker Commands\n\n"
+        "/setcalories - Set your calorie amount\n"
+        "/take - Record the calories taken\n"
+        "/calories - Show remaining calories\n"
+        "/reset - Reset your calorie amount\n"
+        "/resettoinitial - Reset you calories to initial amount"
     )

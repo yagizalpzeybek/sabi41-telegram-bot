@@ -9,7 +9,10 @@ from telegram.ext import (
 )
 
 from config import TOKEN
-from commands import start_command, help_command, about_command, custom_command, time_command, menu_command, game_command, wiki_command, weather_command, ask_command, set_budget_command, spend_command, balance_command, reset_budget_command, balance_tracker_command
+from commands import (start_command, help_command, about_command, custom_command, time_command, menu_command, game_command, wiki_command, weather_command, ask_command,
+set_budget_command, spend_command, balance_command, reset_budget_command, balance_tracker_command, set_calories_command, take_calories_command, calories_command, reset_calories_command, 
+reset_calories_to_initial_command, calorie_tracker_command
+)
 from handlers import handle_message, button_handler, error
 
 
@@ -44,6 +47,13 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("balance", balance_command))
     app.add_handler(CommandHandler("resetbudget", reset_budget_command))
     app.add_handler(CommandHandler("balancetracker", balance_tracker_command))
+    app.add_handler(CommandHandler("setcalories", set_calories_command))
+    app.add_handler(CommandHandler("calories", calories_command))
+    app.add_handler(CommandHandler("take", take_calories_command))
+    app.add_handler(CommandHandler("reset", reset_calories_command))
+    app.add_handler(CommandHandler("resettoinitial", reset_calories_to_initial_command))
+    app.add_handler(CommandHandler("calorietracker", calorie_tracker_command))
+                    
 
     app.add_error_handler(error)
 
