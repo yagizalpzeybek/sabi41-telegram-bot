@@ -221,7 +221,7 @@ async def set_budget_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     budget = set_budget(user_id, amount)
 
     await update.message.reply_text(
-        f"Budget set: {budget:,.2f} TL"
+    f"Budget set: {budget['current_balance']:,.2f} TL"
     )
         
 async def spend_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -254,8 +254,9 @@ async def spend_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     await update.message.reply_text(
         f"Expense recorded: {amount:,.2f} TL\n"
-        f"Remaining balance: {remaining_balance:,.2f} TL"
+        f"Remaining balance: {remaining_balance['current_balance']:,.2f} TL"
     )
+    
 
 async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -268,7 +269,8 @@ async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
         
     await update.message.reply_text(
-        f"Your remaining balance is {balance:,.2f} TL"
+        f"Initial budget: {balance['initial_budget']:,.2f} TL\n"
+        f"Current balance: {balance['current_balance']:,.2f} TL"
     )
 
 async def reset_budget_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

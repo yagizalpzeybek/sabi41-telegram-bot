@@ -1,48 +1,65 @@
 import json
 import os
-
-BUDGET_FILE = "budget.json"
-
-def load_budgets():
-    if not os.path.exists(BUDGET_FILE):
-        return{}
-    
-    with open(BUDGET_FILE, "r", encoding = "utf-8") as file:
-        return json.load(file)
-    
-def save_budgets(budgets):
-    with open(BUDGET_FILE, "w", encoding="utf-8") as file:
-        json.dump(budgets, file, indent = 4)
-
-budgets = load_budgets()
+from database import supabase
 
 def set_budget(user_id: int, amount: float):
     user_id = str(user_id)
-    budgets[user_id] = amount
-    save_budgets(budgets)
-    return budgets[user_id]
+
+    data = {
+        "user_id": user_id,
+        "initial_budget" : amount,
+        "current_balance" : amount
+
+    }
+
+    supabase.table("budgets").upsert(data).execute()
+
+    return data
 
 def get_balance(user_id: int):
     user_id = str(user_id)
-    return budgets.get(user_id)
+
+    response = (
+        supabase.table("budgets")
+        .select("*")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    if not response.data:
+        return None
+
+    return response.data[0]
+
 
 def spend_money(user_id: int, amount: float):
     user_id = str(user_id)
 
-    if user_id not in budgets:
-        return None
-    
-    budgets[user_id] -= amount
-    save_budgets(budgets)
+    budget = get_balance(user_id)
 
-    return budgets[user_id]
+    if budget is None:
+        return None
+
+    new_balance = budget["current_balance"] - amount
+
+    (
+        supabase.table("budgets")
+        .update({"current_balance": new_balance})
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    budget["current_balance"] = new_balance
+
+    return budget
 
 
 def reset_budget(user_id: int):
     user_id = str(user_id)
 
-    if user_id in budgets:
-        del budgets[user_id]
-        save_budgets(budgets)
-
-    return None
+    (
+        supabase.table("budgets")
+        .delete()
+        .eq("user_id", user_id)
+        .execute()
+    )
