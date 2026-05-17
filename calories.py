@@ -5,7 +5,7 @@ CALORIES_FILE = "calories.json"
 
 
 def load_calories():
-    if not os.path.exits(CALORIES_FILE):
+    if not os.path.exists(CALORIES_FILE):
         return{}
     
     with open(CALORIES_FILE, "r", encoding="utf-8") as file:
