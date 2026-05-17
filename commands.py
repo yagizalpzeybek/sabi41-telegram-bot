@@ -8,6 +8,7 @@ from config import WEATHER_API_KEY, GROQ_API_KEY
 from groq import Groq
 from budget import set_budget, get_balance, spend_money, reset_budget
 from calories import set_calories, get_calories, take_calories, reset_calories, reset_to_initial_calories
+from fitness import log_workout, get_last_exercise, get_exercise_history, get_all_workouts
 
 
 groq_client = Groq(api_key=GROQ_API_KEY)
@@ -393,3 +394,140 @@ async def calorie_tracker_command(update: Update, context: ContextTypes.DEFAULT_
         "/resetnew - Reset to your new daily calorie amount\n"
         "/resetcalories - Reset you calories to initial amount"
     )
+
+async def fitness_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🏋️ Fitness Tracker Commands\n\n"
+        "/logworkout exercise sets reps weight\n"
+        "Example: /logworkout squat 4 8 80\n\n"
+        "/progress exercise\n"
+        "Example: /progress squat\n\n"
+        "/workouthistory exercise\n"
+        "Example: /workouthistory squat"
+    )
+
+
+async def log_workout_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) < 4:
+        await update.message.reply_text(
+            "Please use this format:\n"
+            "/logworkout exercise sets reps weight\n\n"
+            "Example: /logworkout squat 4 8 80"
+        ) 
+        return
+    
+    try:
+        exercise = " ".join(context.args[:-3])
+        sets = int(context.args[-3])
+        reps = int(context.args[-2])
+        weight = float(context.args[-1].replace(",","."))
+
+    except ValueError:
+        await update.message.reply_text(
+            "Sets and reps must be whole numbers, weight must be a number"
+        )
+        return
+    
+    if sets <= 0 or reps <= 0 or weight <= 0:
+        await update.message.reply_text(
+            "Sets, reps and weight must be greater than 0."
+        )
+        return
+    
+    user_id = update.message.from_user.id
+    workout, previous = log_workout(user_id, sets, reps, exercise, weight)
+
+    message = (
+        f"✅ Workout logged: {workout['exercise'].title()}\n\n"
+        f"Current:\n"
+        f"{workout[sets]} sets x {workout[reps]} reps x {workout['weight']} kg\n"
+        f"Volume: {workout['volume']:,.2f} kg"
+
+    )
+
+    if previous:
+        diff = workout["volume"] - previous["volume"]
+        percent = (diff / previous["volume"]) * 100 if previous["volume"] != 0 else 0
+
+        message += (
+            f"\n\nPrevious volume: {previous['volume']:,.2f} kg\n"
+            f"Progress: {diff:+,.2f} kg ({percent:+.2f}%)"
+
+        )
+    
+    else:
+        message += "\n\nNo previous workout found for this exercise"
+
+    await update.message.reply_text(message)
+
+
+async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "Please enter an exercise. \nExample: /progress squat"
+        )
+        return
+    
+    exercise = " ".join(context.args)
+    user_id = update.message.from_user.id
+
+    history = get_exercise_history(user_id, exercise, limit=2)
+
+    if len(history) == 0:
+        await update.message.reply_text("No workout found for this exercise.")
+        return
+    
+    if len(history) == 1:
+        workout = history[-1]
+        await update.message.reply_text(
+            f"Only one record found for {exercise.title()}.\n\n"
+            f"{workout['sets']}x{workout['reps']}x{workout['weight']} kg\n"
+            f"Volume: {workout['volume']:,.2f} kg"
+        )
+        return
+    
+    previous = history[-2]
+    current = history[-1]
+
+    diff = current["volume"] - previous["volume"]
+    percent = (diff / previous["volume"]) * 100 if previous["volume"] != 0 else 0
+
+    await update.message.reply_text(
+        f"Progress for {exercise.title()}"
+        f"Previous: {previous['sets']}x{previous['reps']}x{previous['weight']} kg"
+        f"= {previous['volume']:,.2f} kg\n"
+        f"Current: {current['sets']}x{current['reps']}x{current['weight']} kg"
+        f"= {current['volume']:,.2f} kg\n"
+        f"Progress: {diff:+,.2f} kg ({percent:+.2f})"
+    )
+
+async def workout_history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "Please enter an exercise.\nExample: /workouthistory squat"
+        )
+        return
+    
+    exercise = " ".join(context.args)
+    user_id = update.message.from_user.id
+
+    history = get_exercise_history(user_id, exercise, limit=10)
+
+    if not history:
+        await update.message.reply_text("No history found for this exercise.")
+        return
+    
+    message = f"📋 Last {len(history)} records for {exercise.title()}:\n\n"
+
+    for index, workout in enumerate(history, start=1):
+        message += (
+            f"{index}) {workout['date']} - "
+            f"{workout['sets']}x{workout['reps']}x{workout['weight']} kg "
+            f"{workout['volume']:,.2f} kg\n"
+        )
+
+
+    await update.message.reply_text(message)
+
+
+

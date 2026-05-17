@@ -11,7 +11,7 @@ from telegram.ext import (
 from config import TOKEN
 from commands import (start_command, help_command, about_command, custom_command, time_command, menu_command, game_command, wiki_command, weather_command, ask_command,
 set_budget_command, spend_command, balance_command, reset_budget_command, balance_tracker_command, set_calories_command, take_calories_command, calories_command, reset_calories_command, 
-reset_calories_to_initial_command, calorie_tracker_command
+reset_calories_to_initial_command, calorie_tracker_command, fitness_command, log_workout_command, progress_command, workout_history_command
 )
 from handlers import handle_message, button_handler, error
 
@@ -52,7 +52,11 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("resetnew", reset_calories_command))
     app.add_handler(CommandHandler("resetcalories", reset_calories_to_initial_command))
     app.add_handler(CommandHandler("calorietracker", calorie_tracker_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))             
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))    
+    app.add_handler(CommandHandler("fitness", fitness_command))
+    app.add_handler(CommandHandler("logworkout", log_workout_command))
+    app.add_handler(CommandHandler("progress", progress_command))
+    app.add_handler(CommandHandler("workouthistory", workout_history_command))         
 
     app.add_error_handler(error)
 

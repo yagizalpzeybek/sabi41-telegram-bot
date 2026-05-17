@@ -4,3 +4,5 @@ memory.json
 __pycache__/
 *.pyc
 budget.json
+fitness.json
+calories.json
