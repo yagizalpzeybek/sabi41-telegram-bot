@@ -309,7 +309,8 @@ async def set_calories_command(update: Update, context: ContextTypes.DEFAULT_TYP
     calories = set_calories(user_id, amount)
 
     await update.message.reply_text(
-        f"Budget set: {calories:,.2f} kcal"
+        f"Initial calories: {'initial_calories':,.2f} kcal\n"
+        f"Current calories: {'current_calories':,.2f} kcal"
     )
         
 async def take_calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
