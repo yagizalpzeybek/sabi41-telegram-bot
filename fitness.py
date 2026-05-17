@@ -18,10 +18,14 @@ def save_workouts(workouts):
 
 workouts = load_workouts()
 
-def log_workout(user_id: int, exercise: str, sets: int, reps: int, weight: float):
+def log_detailed_workout(user_id: int, exercise: str, sets_data: list):
     user_id = str(user_id)
     exercise = exercise.lower().strip()
-    volume = sets * reps* weight
+
+    total_volume = sum(
+        set_item["weight"] * set_item["reps"]
+        for set_item in sets_data
+    )
 
     if user_id not in workouts:
         workouts[user_id] = []
@@ -29,12 +33,11 @@ def log_workout(user_id: int, exercise: str, sets: int, reps: int, weight: float
     previous = get_last_exercise(user_id, exercise)
 
     workout = {
-        "exercise" : exercise,
-        "sets" : sets,
-        "reps" : reps,
-        "weight" : weight,
-        "volume" : volume,
-        "date" : datetime.now().strftime("%Y-%m-%d %H:%M")
+        "exercise": exercise,
+        "sets": sets_data,
+        "set_count": len(sets_data),
+        "volume": total_volume,
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
 
     workouts[user_id].append(workout)
