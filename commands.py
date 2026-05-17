@@ -309,8 +309,8 @@ async def set_calories_command(update: Update, context: ContextTypes.DEFAULT_TYP
     calories = set_calories(user_id, amount)
 
     await update.message.reply_text(
-        f"Initial calories: {'initial_calories':,.2f} kcal\n"
-        f"Current calories: {'current_calories':,.2f} kcal"
+        f"Initial calories: {calories['initial_calories']:,.2f} kcal\n"
+        f"Current calories: {calories['current_calories']:,.2f} kcal"
     )
         
 async def take_calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -342,8 +342,8 @@ async def take_calories_command(update: Update, context: ContextTypes.DEFAULT_TY
         return
         
     await update.message.reply_text(
-        f"Calories recorded: {amount:,.2f} TL\n"
-        f"Remaining calories: {remaining_calories:,.2f} TL"
+        f"Calories recorded: {amount:,.2f} kcal\n"
+        f"Remaining calories: {remaining_calories['current_calories']:,.2f} kcal"
     )
 
 async def calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -357,7 +357,8 @@ async def calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
         
     await update.message.reply_text(
-        f"Your remaining calories are {calories:,.2f} kcal"
+        f"Initial calories: {calories['initial_calories']:,.2f} kcal\n"
+        f"Current calories: {calories['current_calories']:,.2f} kcal"
     )
 
 async def reset_calories_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

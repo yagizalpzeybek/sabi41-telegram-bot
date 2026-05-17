@@ -41,7 +41,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("weather", weather_command))
     app.add_handler(CommandHandler("ask", ask_command))
     # ❗ önemli
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(CommandHandler("setbudget", set_budget_command))
     app.add_handler(CommandHandler("spend", spend_command))
     app.add_handler(CommandHandler("balance", balance_command))
@@ -50,10 +49,10 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("setcalories", set_calories_command))
     app.add_handler(CommandHandler("calories", calories_command))
     app.add_handler(CommandHandler("take", take_calories_command))
-    app.add_handler(CommandHandler("reset", reset_calories_command))
+    app.add_handler(CommandHandler("resetcalories", reset_calories_command))
     app.add_handler(CommandHandler("resettoinitial", reset_calories_to_initial_command))
     app.add_handler(CommandHandler("calorietracker", calorie_tracker_command))
-                    
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))             
 
     app.add_error_handler(error)
 

@@ -52,7 +52,7 @@ def reset_to_initial_calories(user_id: int):
     if user_id not in calories:
         return None
     
-    calories[user_id]["current_calories"] = calories[user_id]["intial_calories"]
+    calories[user_id]["current_calories"] = calories[user_id]["initial_calories"]
     save_calories(calories)
 
     return calories[user_id]
