@@ -387,9 +387,9 @@ async def reset_calories_to_initial_command(update: Update, context: ContextType
 async def calorie_tracker_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Calorie Tracker Commands\n\n"
-        "/setcalories - Set your calorie amount\n"
+        "/setcalories - Set your daily calorie amount\n"
         "/take - Record the calories taken\n"
         "/calories - Show remaining calories\n"
-        "/reset - Reset your calorie amount\n"
-        "/resettoinitial - Reset you calories to initial amount"
+        "/resetnew - Reset to your new daily calorie amount\n"
+        "/resetcalories - Reset you calories to initial amount"
     )

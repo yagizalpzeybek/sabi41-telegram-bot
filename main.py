@@ -49,8 +49,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("setcalories", set_calories_command))
     app.add_handler(CommandHandler("calories", calories_command))
     app.add_handler(CommandHandler("take", take_calories_command))
-    app.add_handler(CommandHandler("resetcalories", reset_calories_command))
-    app.add_handler(CommandHandler("resettoinitial", reset_calories_to_initial_command))
+    app.add_handler(CommandHandler("resetnew", reset_calories_command))
+    app.add_handler(CommandHandler("resetcalories", reset_calories_to_initial_command))
     app.add_handler(CommandHandler("calorietracker", calorie_tracker_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))             
 
