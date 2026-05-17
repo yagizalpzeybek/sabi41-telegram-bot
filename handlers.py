@@ -1,5 +1,4 @@
 import random
-import datetime
 import logging
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup

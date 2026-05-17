@@ -6,14 +6,12 @@ from telegram.ext import (
     MessageHandler,
     filters,
     CallbackQueryHandler,
-    ConversationHandler,
 )
 
 from config import TOKEN
 from commands import (start_command, help_command, about_command, custom_command, time_command, menu_command, game_command, wiki_command, weather_command, ask_command,
 set_budget_command, spend_command, balance_command, reset_budget_command, balance_tracker_command, set_calories_command, take_calories_command, calories_command, reset_calories_command, 
-reset_calories_to_initial_command, calorie_tracker_command, fitness_command, progress_command, workout_history_command, ASK_EXERCISE, ASK_SET_COUNT, ASK_SET_DETAILS,
-log_workout_start, ask_set_count, ask_set_details, collect_set_details, cancel_workout,
+reset_calories_to_initial_command, calorie_tracker_command,
 )
 from handlers import handle_message, button_handler, error
 
@@ -54,20 +52,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("resetnew", reset_calories_command))
     app.add_handler(CommandHandler("resetcalories", reset_calories_to_initial_command))
     app.add_handler(CommandHandler("calorietracker", calorie_tracker_command))   
-    app.add_handler(CommandHandler("fitness", fitness_command))
-    app.add_handler(CommandHandler("progress", progress_command))
-    app.add_handler(CommandHandler("workouthistory", workout_history_command))   
-    workout_conversation = ConversationHandler(
-    entry_points=[CommandHandler("logworkout", log_workout_start)],
-    states={
-        ASK_EXERCISE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_set_count)],
-        ASK_SET_COUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_set_details)],
-        ASK_SET_DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, collect_set_details)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel_workout)],
-)
-
-    app.add_handler(workout_conversation)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))       
 
     app.add_error_handler(error)

@@ -3,16 +3,14 @@ import wikipedia
 import requests
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, ConversationHandler
+from telegram.ext import ContextTypes
 from config import WEATHER_API_KEY, GROQ_API_KEY
 from groq import Groq
 from budget import set_budget, get_balance, spend_money, reset_budget
 from calories import set_calories, get_calories, take_calories, reset_calories, reset_to_initial_calories
-from fitness import log_detailed_workout, get_exercise_history
 
 
 groq_client = Groq(api_key=GROQ_API_KEY)
-ASK_EXERCISE, ASK_SET_COUNT, ASK_SET_DETAILS = range(3)
 
 
 
@@ -396,223 +394,9 @@ async def calorie_tracker_command(update: Update, context: ContextTypes.DEFAULT_
         "/resetcalories - Reset you calories to initial amount"
     )
 
-async def fitness_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🏋️ Fitness Tracker Commands\n\n"
-        "/logworkout exercise sets reps weight\n"
-        "Example: /logworkout squat 4 8 80\n\n"
-        "/progress exercise\n"
-        "Example: /progress squat\n\n"
-        "/workouthistory exercise\n"
-        "Example: /workouthistory squat"
-    )
-
-
-async def log_workout_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["workout"] = {}
-
-    await update.message.reply_text(
-        "🏋️ Enter exercise name:\nExample: Bench Press"
-    )
-
-    return ASK_EXERCISE
-
-async def ask_set_count(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    exercise = update.message.text.strip()
-
-    if not exercise:
-        await update.message.reply_text("Exercise name cannot be empty.")
-        return ASK_EXERCISE
-
-    context.user_data["workout"]["exercise"] = exercise
-
-    await update.message.reply_text(
-        "How many sets did you do?"
-    )
-
-    return ASK_SET_COUNT
-
-
-async def ask_set_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        set_count = int(update.message.text.strip())
-    except ValueError:
-        await update.message.reply_text("Please enter a valid set number.")
-        return ASK_SET_COUNT
-
-    if set_count <= 0:
-        await update.message.reply_text("Set count must be greater than 0.")
-        return ASK_SET_COUNT
-
-    context.user_data["workout"]["set_count"] = set_count
-    context.user_data["workout"]["sets"] = []
-    context.user_data["workout"]["current_set"] = 1
-
-
-    await update.message.reply_text(
-        "1st set: enter weight and reps\nExample: 60 10"
-    )
-
-    return ASK_SET_DETAILS
-
-
-async def collect_set_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.strip().replace(",", ".")
-    parts = text.split()
-
-    if len(parts) != 2:
-        await update.message.reply_text(
-            "Please enter weight and reps like this:\n60 10"
-        )
-        return ASK_SET_DETAILS
-
-    try:
-        weight = float(parts[0])
-        reps = int(parts[1])
-    except ValueError:
-        await update.message.reply_text(
-            "Weight must be a number and reps must be a whole number.\nExample: 60 10"
-        )
-        return ASK_SET_DETAILS
-
-    if weight <= 0 or reps <= 0:
-        await update.message.reply_text(
-            "Weight and reps must be greater than 0."
-        )
-        return ASK_SET_DETAILS
-
-    workout = context.user_data["workout"]
-
-    workout["sets"].append({
-        "set_number": workout["current_set"],
-        "weight": weight,
-        "reps": reps
-    })
-
-    if workout["current_set"] < workout["set_count"]:
-        workout["current_set"] += 1
-        set_number = workout["current_set"]
-
-        await update.message.reply_text(
-            f"{set_number} set: enter weight and reps\nExample: 60 10"
-        )
-
-        return ASK_SET_DETAILS
-
-    user_id = update.message.from_user.id
-
-    saved_workout, previous = log_detailed_workout(
-        user_id=user_id,
-        exercise=workout["exercise"],
-        sets_data=workout["sets"]
-    )
-
-    message = (
-        f"✅ Workout saved: {saved_workout['exercise'].title()}\n\n"
-        f"Sets: {saved_workout['set_count']}\n"
-    )
-
-    for set_item in saved_workout["sets"]:
-        message += (
-            f"Set {set_item['set_number']}: "
-            f"{set_item['weight']} kg x {set_item['reps']} reps\n"
-        )
-
-    message += f"\nTotal volume: {saved_workout['volume']:,.2f} kg"
-
-    if previous:
-        diff = saved_workout["volume"] - previous["volume"]
-        percent = (diff / previous["volume"]) * 100 if previous["volume"] else 0
-
-        message += (
-            f"\n\nPrevious volume: {previous['volume']:,.2f} kg"
-            f"\nProgress: {diff:+,.2f} kg ({percent:+.2f}%)"
-        )
-    else:
-        message += "\n\nNo previous workout found for this exercise."
-
-    await update.message.reply_text(message)
-
-    context.user_data.pop("workout", None)
-
-    return ConversationHandler.END
 
 
 
-async def cancel_workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data.pop("workout", None)
-
-    await update.message.reply_text("Workout logging cancelled.")
-
-    return ConversationHandler.END
-
-async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        await update.message.reply_text(
-            "Please enter an exercise. \nExample: /progress squat"
-        )
-        return
-    
-    exercise = " ".join(context.args)
-    user_id = update.message.from_user.id
-
-    history = get_exercise_history(user_id, exercise, limit=2)
-
-    if len(history) == 0:
-        await update.message.reply_text("No workout found for this exercise.")
-        return
-    
-    if len(history) == 1:
-        workout = history[-1]
-        await update.message.reply_text(
-            f"Only one record found for {exercise.title()}.\n\n"
-            f"{workout['sets']}x{workout['reps']}x{workout['weight']} kg\n"
-            f"Volume: {workout['volume']:,.2f} kg"
-        )
-        return
-    
-    previous = history[-2]
-    current = history[-1]
-
-    diff = current["volume"] - previous["volume"]
-    percent = (diff / previous["volume"]) * 100 if previous["volume"] != 0 else 0
-
-    await update.message.reply_text(
-        f"Progress for {exercise.title()}"
-        f"Previous: {previous['sets']}x{previous['reps']}x{previous['weight']} kg"
-        f"= {previous['volume']:,.2f} kg\n"
-        f"Current: {current['sets']}x{current['reps']}x{current['weight']} kg"
-        f"= {current['volume']:,.2f} kg\n"
-        f"Progress: {diff:+,.2f} kg ({percent:+.2f})"
-    )
-
-async def workout_history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        await update.message.reply_text(
-            "Please enter an exercise.\nExample: /workouthistory squat"
-        )
-        return
-    
-    exercise = " ".join(context.args)
-    user_id = update.message.from_user.id
-
-    history = get_exercise_history(user_id, exercise, limit=10)
-
-    if not history:
-        await update.message.reply_text("No history found for this exercise.")
-        return
-    
-    message = f"📋 Last {len(history)} records for {exercise.title()}:\n\n"
-
-    for index, workout in enumerate(history, start=1):
-        message += (
-            f"{index}) {workout['date']} - "
-            f"{workout['sets']}x{workout['reps']}x{workout['weight']} kg "
-            f"{workout['volume']:,.2f} kg\n"
-        )
-
-
-    await update.message.reply_text(message)
 
 
 
